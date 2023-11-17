@@ -1,0 +1,9 @@
+Street 5500 ANTREX CRES
+Address L4Z 3T6
+DL_Number A80580360956115
+Issue_Date 2017/12/12
+Expiration_Date 2022/11/15
+Class G
+DOB 1995/11/15
+First_name ASSI 
+Last_name AMANDA
