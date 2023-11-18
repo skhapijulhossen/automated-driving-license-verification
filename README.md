@@ -75,3 +75,72 @@ response = textract.detect_document_text(
 ```
 
 ❗ If you choose to use S3 buckets for storage, it is important for admins to note that S3 buckets should never be left open publicly as it poses a serious threat from scripting attacks. S3 buckets should always be made private to avoid data leaks. However, all the Textract related can be done without the use of S3 and on a local machine as well.
+
+## Overview
+The module `Extract.py` is where the detect_document_text API call and regex resides. There are several different ways of doing this API call such as using the S3 bucket (_AWS Cloud Storage Provider_) to store the documents. However our implementation uses the local machine to process the documents and does the API call with the existing `Dataset directory` in the codebase. However, the exact implementation can be used with S3 bucket as well. 
+<br/>
+
+## Requirements
+Install the following:
+- Python 
+- [Anaconda](https://www.anaconda.com/) -> For Python environment and dependencies
+- [AWS cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) with [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3FhashArgs%3D%2523%26isauthcode%3Dtrue%26state%3DhashArgsFromTB_us-east-2_74612e27751b17c8&client_id=arn%3Aaws%3Asignin%3A%3A%3Aconsole%2Fcanvas&forceMobileApp=0&code_challenge=2HqpiKJXxi8LW56ddweOZqjcxXFTF4--LjUyX8_WP3A&code_challenge_method=SHA-256) -> To use AWS services
+    - 1. For this step please follow the documentation [here](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-prereqs.html). This documentation will walk you through the steps to install AWS cli. Make sure you have set up the AWS cli environment providing ACCESS ID, SECRET KEY, region and output type, as it instructed in the docs.
+- [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html#installation) -> Standard library for AWS services.  Install this library by `pip install boto3` After installation of Boto3, 
+verify with the command  `boto3 --version` 
+
+## After installation
+We are using the following Python modules 
+```python
+import re  # This module provides regular expression matching operations
+import boto3 # AWS service interface
+from datetime import datetime # To get the dates from the driver-license wit the format YYYY-MM-DD
+from pathlib import Path # To get the path of the file regardless of the OS
+```
+
+To specify the pathway of the corresponding directories and make it consistent in every OS, we use the `Path` module and initialize it into constants. <br />
+### _Paths used in the code_
+🛑 __Extract.py__
+```python
+# Constant that targets the Dataset directory 
+DL_DATASET_FOLDER = Path(__file__).parents[1].joinpath('Dataset/Driver-License')
+# Specify the particular license using the constant initialized above
+DOC_NAME = DL_DATASET_FOLDER.joinpath("Amanda_Front_DL.png")
+
+# This directory is the directory where we store end-result with key-value pairing
+DRIVER_LICENSE_DATA_DIR = Path(__file__).parents[0].joinpath('Parsed_DL_data')
+# Path to specify where the output key-value TXT file is stored,
+DRIVER_LICENSE_DATA_TXT = DRIVER_LICENSE_DATA_DIR.joinpath("driver-license.txt")
+```
+
+🛑 __main.py__
+```python
+# Path to the directory where RAW TEXT stored
+# This step is to check type of the license by reading from RAW TEXT file
+RAW_DATA = Path(__file__).parents[0].joinpath('Raw-data')
+RAW_DATA_TXT = RAW_DATA.joinpath("raw_data.txt")
+
+file1 = open(RAW_DATA_TXT, "w")
+# Writes `Raw Text` that got extracted from the document specified in Extract.py module.
+for item in Extract.response["Blocks"]:
+    if item["BlockType"] == "LINE":
+        file1.write(item["Text"] + "\n")
+file1.close()
+
+# Check if type of DL is from Ontario
+# ====================================
+# if the `Ontario` is not present on the license then we will skip the KV Pair
+with open(RAW_DATA_TXT) as file:
+    contents = file.read()
+    search_word = "Ontario"
+    if search_word in contents:
+        print('Ontario License found')
+        Extract.restructData() # Proper key-value format for Ontario DL
+    else:
+        print('Not from Ontario, please contact w/ RideAlike team')
+
+```
+
+
+
+
