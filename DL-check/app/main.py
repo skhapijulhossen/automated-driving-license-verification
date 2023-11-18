@@ -172,8 +172,8 @@ class DLInfo(BaseModel):
 app = FastAPI()
 
 
-# validation API
-@app.get('/validate/{doc_id}', response_model=DLInfo, status_code=200)
+# Verification API endpoint
+@app.get('/verify/{doc_id}', response_model=DLInfo, status_code=200)
 def validate(doc_id: str):
     DOC_NAME = DL_DATASET_DIR.joinpath(doc_id)
 
